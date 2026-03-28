@@ -18,6 +18,9 @@ def parse_booking_json(text):
 
 def validate_booking_fields(data):
     """Returns (is_valid, error_message)"""
+    # Force all values to strings to avoid type errors from LLM output
+    data = {k: str(v) if v is not None else "" for k, v in data.items()}
+
     email = data.get("customer_email", "")
     if "@" not in email or "." not in email:
         return False, "Invalid email address format."
