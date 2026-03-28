@@ -8,10 +8,27 @@ from app.email_sender import send_confirmation_email
 
 def parse_booking_json(text):
     """Extract JSON booking payload from LLM response text"""
+    # Try to find JSON block
     match = re.search(r'\{[^{}]+\}', text, re.DOTALL)
     if match:
         try:
-            return json.loads(match.group())
+            data = json.loads(match.group())
+            # Normalize common alternative key names the LLM might use
+            key_map = {
+                "name": "customer_name",
+                "email": "customer_email",
+                "phone": "customer_phone",
+                "phone_number": "customer_phone",
+                "service": "service_type",
+                "booking_type": "service_type",
+                "date": "preferred_date",
+                "time": "preferred_time",
+            }
+            normalized = {}
+            for k, v in data.items():
+                normalized_key = key_map.get(k.lower().strip(), k)
+                normalized[normalized_key] = v
+            return normalized
         except Exception:
             return None
     return None
